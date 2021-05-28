@@ -336,8 +336,7 @@ copyuvm(pde_t *pgdir, uint sz)
       goto bad;
   }
 
-  // Copy user stack?
-
+  // Copy user stack
     for(i = KERNBASE-2*PGSIZE; i < KERNBASE; i += PGSIZE){
         if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
             panic("copyuvm: pte should exist");
@@ -352,7 +351,6 @@ copyuvm(pde_t *pgdir, uint sz)
         if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
             goto bad;
     }
-
 
   return d;
 

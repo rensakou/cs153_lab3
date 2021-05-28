@@ -19,22 +19,16 @@ fetchint(uint addr, int *ip)
 {
   struct proc *curproc = myproc();
 
-  //cprintf("In fetchint:%d\n", addr);
+  uint kern = KERNBASE;
+  uint bottom = KERNBASE-2*PGSIZE-1;
 
   // If given address is outside of user stack range?
-  uint kern = KERNBASE;
-  //uint esp = curproc->tf->esp;
-  uint bottom = KERNBASE-2*PGSIZE-1;
-  //if(addr >= curproc->sz || addr+4 > curproc->sz)
-  //if(addr >= kern || addr+4 > kern || addr < esp)
-  //if(addr >= kern || addr+4 > kern || (addr < esp && (addr >= curproc->sz || addr+4 > curproc->sz)))
+  // TODO Check if the addr should only be in the stack range
   if(addr >= kern || addr+4 > kern || (addr < bottom && (addr >= curproc->sz || addr+4 > curproc->sz)))
   {
-      //cprintf("%d is out of range %d:%d\n", addr, esp, kern);
       return -1;
   }
   *ip = *(int*)(addr);
-  //cprintf("End fetchint:%d\n", *ip);
   return 0;
 }
 
@@ -47,27 +41,20 @@ fetchstr(uint addr, char **pp)
   char *s, *ep;
   struct proc *curproc = myproc();
 
- // cprintf("In fetchstr:%d\n", addr);
-
   uint kern = KERNBASE;
   uint esp = curproc->tf->esp;
   // If given address is outside of user stack range?
-  //if(addr >= kern || addr < esp)
+  // TODO Check if the addr should only be in the stack range
   if(addr >= kern || (addr < esp && addr >= curproc->sz))
-  //if(addr >= curproc->sz)
   {
-      //cprintf("%d is out of range %d:%d\n", addr, esp, kern);
       return -1;
   }
   *pp = (char*)addr;
   ep = (char*)KERNBASE-1;
-  //ep = (char*)curproc->sz;
   for(s = *pp; s < ep; s++){
     if(*s == 0)
-      //cprintf("End fetchstr:%s\n", s-*pp);
       return s - *pp;
   }
-  //cprintf("Return -1 in fetchstr");
   return -1;
 }
 
@@ -87,19 +74,14 @@ argptr(int n, char **pp, int size)
   int i;
   struct proc *curproc = myproc();
 
-  //cprintf("In argptr\n");
-
   if(argint(n, &i) < 0)
     return -1;
-  // ?
-  //if(size < 0 || (uint)i >= KERNBASE || (uint)i+size > KERNBASE || (uint)i+size < curproc->tf->esp)
+  // TODO Check if the addr should only be in the stack range
   if(size < 0 || (uint)i >= KERNBASE || (uint)i+size > KERNBASE || ((uint)i+size < curproc->tf->esp && ((uint)i >= curproc->sz || (uint)i+size > curproc->sz)))
-  //if(size < 0 || (uint)i >= curproc->sz || (uint)i+size > curproc->sz)
   {
       return -1;
   }
   *pp = (char*)i;
-  //cprintf("End argptr:%s\n", *pp);
   return 0;
 }
 
