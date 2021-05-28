@@ -63,17 +63,28 @@ exec(char *path, char **argv)
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible.  Use the second as the user stack.
   sz = PGROUNDUP(sz);
+  /*
   if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0)
     goto bad;
   clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
   sp = sz;
+   */
+
+  uint tempStack = KERNBASE-2*PGSIZE-1;
+  if((tempStack = allocuvm(pgdir, tempStack, KERNBASE-1)) == 0){
+      goto bad;
+  }
+  clearpteu(pgdir, (char*)(tempStack-2*PGSIZE));
+  sp=KERNBASE-1;
+
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
       goto bad;
     sp = (sp - (strlen(argv[argc]) + 1)) & ~3;
-    if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) < 0)
+    int test = copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1);
+    if(test < 0)
       goto bad;
     ustack[3+argc] = sp;
   }
@@ -84,7 +95,8 @@ exec(char *path, char **argv)
   ustack[2] = sp - (argc+1)*4;  // argv pointer
 
   sp -= (3+argc+1) * 4;
-  if(copyout(pgdir, sp, ustack, (3+argc+1)*4) < 0)
+  int temp =copyout(pgdir, sp, ustack, (3+argc+1)*4);
+  if(temp < 0)
     goto bad;
 
   // Save program name for debugging.
