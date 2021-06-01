@@ -79,19 +79,28 @@ trap(struct trapframe *tf)
     break;
   case T_PGFLT:;
     uint faultingAddres = rcr2();
-          if (faultingAddres > KERNBASE-1){
-              cprintf("from trap access > KERNBASE");
-              exit();
-          }
-          faultingAddres = PGROUNDDOWN(faultingAddres);
-          if (allocuvm(myproc()->pgdir, faultingAddres, faultingAddres + PGSIZE) == 0) {
-              cprintf("case T_PGFLT from trap.c: allocuvm failed. Number of current allocated pages: %d\n", myproc()->stackPages);
-              exit();
-          }
-          myproc()->stackPages++;
-          cprintf("Increased Stack Size\n");
-          cprintf("case T_PGFLT from trap.c: allocuvm succeeded. Number of pages allocated: %d\n", myproc()->stackPages);
-          break;
+    int gotoPanic = 0;
+    if (faultingAddres > KERNBASE-1){
+      cprintf("from trap access > KERNBASE");
+      gotoPanic = 1;
+      //exit();
+    }
+    if(!gotoPanic) {
+        faultingAddres = PGROUNDDOWN(faultingAddres);
+        if (allocuvm(myproc()->pgdir, faultingAddres, faultingAddres + PGSIZE) == 0) {
+            cprintf("case T_PGFLT from trap.c: allocuvm failed. Number of current allocated pages: %d\n",
+                    myproc()->stackPages);
+            gotoPanic = 1;
+            //exit();
+        }
+        if(!gotoPanic) {
+            myproc()->stackPages++;
+            cprintf("Increased Stack Size\n");
+            cprintf("case T_PGFLT from trap.c: allocuvm succeeded. Number of pages allocated: %d\n",
+                    myproc()->stackPages);
+            break;
+        }
+    }
 
 
   //PAGEBREAK: 13
