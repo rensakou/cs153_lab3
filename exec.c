@@ -68,7 +68,11 @@ exec(char *path, char **argv)
   if((tempStack = allocuvm(pgdir, tempStack, KERNBASE-1)) == 0){
       goto bad;
   }
-  clearpteu(pgdir, (char*)(tempStack-2*PGSIZE));
+
+  curproc->stackPages = 1;
+    cprintf("Initial number of pages by the process: %d\n", curproc->stackPages);
+
+    clearpteu(pgdir, (char*)(tempStack-2*PGSIZE));
   sp=KERNBASE-1;
 
 

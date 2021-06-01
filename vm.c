@@ -319,6 +319,7 @@ copyuvm(pde_t *pgdir, uint sz)
   pte_t *pte;
   uint pa, i, flags;
   char *mem;
+  struct proc *curproc = myproc();
 
   if((d = setupkvm()) == 0)
     return 0;
@@ -337,7 +338,7 @@ copyuvm(pde_t *pgdir, uint sz)
   }
 
   // Copy user stack
-    for(i = KERNBASE-2*PGSIZE; i < KERNBASE; i += PGSIZE){
+    for(i = KERNBASE-(curproc->stackPages)*PGSIZE; i < KERNBASE; i += PGSIZE){
         if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
             panic("copyuvm: pte should exist");
         if(!(*pte & PTE_P))
