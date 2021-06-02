@@ -19,15 +19,10 @@ fetchint(uint addr, int *ip)
 {
   struct proc *curproc = myproc();
 
-  uint kern = KERNBASE;
-  uint bottom = KERNBASE-2*PGSIZE-1;
+  uint sp = curproc->tf->esp;
 
-  // If given address is outside of user stack range?
-  // TODO Check if the addr should only be in the stack range
-  if(addr >= kern || addr+4 > kern || (addr < bottom && (addr >= curproc->sz || addr+4 > curproc->sz)))
-  {
+  if(addr >= KERNBASE || addr+4 > KERNBASE || (addr < sp && (addr >= curproc->sz || addr+4 > curproc->sz)))
       return -1;
-  }
   *ip = *(int*)(addr);
   return 0;
 }
@@ -41,14 +36,10 @@ fetchstr(uint addr, char **pp)
   char *s, *ep;
   struct proc *curproc = myproc();
 
-  uint kern = KERNBASE;
-  uint esp = curproc->tf->esp;
-  // If given address is outside of user stack range?
-  // TODO Check if the addr should only be in the stack range
-  if(addr >= kern || (addr < esp && addr >= curproc->sz))
-  {
+  uint sp = curproc->tf->esp;
+
+  if(addr >= KERNBASE || (addr < sp && addr >= curproc->sz))
       return -1;
-  }
   *pp = (char*)addr;
   ep = (char*)KERNBASE-1;
   for(s = *pp; s < ep; s++){
@@ -74,13 +65,14 @@ argptr(int n, char **pp, int size)
   int i;
   struct proc *curproc = myproc();
 
+  uint sp = curproc->tf->esp;
+
   if(argint(n, &i) < 0)
     return -1;
-  // TODO Check if the addr should only be in the stack range
-  if(size < 0 || (uint)i >= KERNBASE || (uint)i+size > KERNBASE || ((uint)i+size < curproc->tf->esp && ((uint)i >= curproc->sz || (uint)i+size > curproc->sz)))
-  {
+
+  if(size < 0 || (uint)i >= KERNBASE || (uint)i+size > KERNBASE ||
+          ((uint)i+size < sp && ((uint)i >= curproc->sz || (uint)i+size > curproc->sz)))
       return -1;
-  }
   *pp = (char*)i;
   return 0;
 }

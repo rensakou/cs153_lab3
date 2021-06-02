@@ -83,7 +83,6 @@ trap(struct trapframe *tf)
     if (faultingAddres > KERNBASE-1){
       cprintf("from trap access > KERNBASE");
       gotoPanic = 1;
-      //exit();
     }
     if(!gotoPanic) {
         faultingAddres = PGROUNDDOWN(faultingAddres);
@@ -91,7 +90,6 @@ trap(struct trapframe *tf)
             cprintf("case T_PGFLT from trap.c: allocuvm failed. Number of current allocated pages: %d\n",
                     myproc()->stackPages);
             gotoPanic = 1;
-            //exit();
         }
         if(!gotoPanic) {
             myproc()->stackPages++;

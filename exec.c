@@ -70,19 +70,17 @@ exec(char *path, char **argv)
   }
 
   curproc->stackPages = 1;
-    cprintf("Initial number of pages by the process: %d\n", curproc->stackPages);
+  cprintf("Initial number of pages by the process: %d\n", curproc->stackPages);
 
-    clearpteu(pgdir, (char*)(tempStack-2*PGSIZE));
+  clearpteu(pgdir, (char*)(tempStack-2*PGSIZE));
   sp=KERNBASE-1;
-
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
       goto bad;
     sp = (sp - (strlen(argv[argc]) + 1)) & ~3;
-    int test = copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1);
-    if(test < 0)
+    if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) < 0)
       goto bad;
     ustack[3+argc] = sp;
   }
@@ -93,8 +91,7 @@ exec(char *path, char **argv)
   ustack[2] = sp - (argc+1)*4;  // argv pointer
 
   sp -= (3+argc+1) * 4;
-  int temp =copyout(pgdir, sp, ustack, (3+argc+1)*4);
-  if(temp < 0)
+  if(copyout(pgdir, sp, ustack, (3+argc+1)*4) < 0)
     goto bad;
 
   // Save program name for debugging.
